@@ -1,75 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>N Login Panel</title>
-<style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.box {
-  background: #111827;
-  padding: 30px;
-  border-radius: 12px;
-  width: 320px;
-  text-align: center;
-  color: white;
-}
-h2 {
-  margin-bottom: 20px;
-}
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 6px;
-  border: none;
-}
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background: #22c55e;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-}
-button:hover {
-  background: #16a34a;
-}
-#msg {
-  margin-top: 10px;
-}
-</style>
+<title>N Pro Panel</title>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>N Login</h2>
-  <input type="text" id="user" placeholder="Username">
-  <input type="password" id="pass" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <p id="msg"></p>
-</div>
+<h2>Signup / Login</h2>
+
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="signup()">Signup</button>
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
 <script>
-function login(){
-  let u = document.getElementById("user").value;
-  let p = document.getElementById("pass").value;
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
 
-  if(u === "N" && p === "1234"){
-    document.getElementById("msg").innerText = "Welcome N!";
-  } else {
-    document.getElementById("msg").innerText = "Wrong login!";
-  }
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function generateKey() {
+  return 'KEY-' + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+// SIGNUP
+function signup(){
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("password").value;
+
+  auth.createUserWithEmailAndPassword(email, pass)
+  .then(()=>{
+    document.getElementById("msg").innerText = "Signup Success!";
+  })
+  .catch(err=>{
+    document.getElementById("msg").innerText = err.message;
+  });
+}
+
+// LOGIN + KEY GENERATE
+function login(){
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("password").value;
+
+  auth.signInWithEmailAndPassword(email, pass)
+  .then(async(user)=>{
+    let key = generateKey();
+
+    await db.collection("keys").add({
+      user: email,
+      key: key,
+      created: new Date()
+    });
+
+    document.getElementById("msg").innerText =
+      "Login Success!\nYour Key: " + key;
+  })
+  .catch(err=>{
+    document.getElementById("msg").innerText = err.message;
+  });
 }
 </script>
 
